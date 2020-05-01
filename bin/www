@@ -32,13 +32,26 @@ server.on('listening', onListening);
 var io = require('socket.io')(server);
 
 io.on('connection', (socket) => {
-    console.log('A user has connected!' + ' ' + socket.id);
+
+    socket.on('setSocketUsername', (username) => {
+        socket.username = username
+
+        let connectedUsers = []
+
+        for (connectedSocket in io.sockets.connected) {
+            connectedUsers.push(io.sockets.connected[connectedSocket].username)
+        }
+
+        io.emit('userConnected', connectedUsers)
+    })
+
     socket.on('disconnect', () => {
-        console.log('The user has disconnected!');
+        io.emit('userDisconnected', socket.username)
     });
+
     socket.on('message', (message) => {
-        io.emit('message', message);
-    });
+        io.emit('message', message)
+    })
 
 });
 
