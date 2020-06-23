@@ -74,29 +74,31 @@ let servers = [
 
 servers.forEach((server) => {
     io.of(server.endpoint).on('connection',(socket) => {
-        socket.on('message', (message) => {
+
+        socket.on('messageToServer', (message) => {
             let roomName = Object.keys(socket.rooms)[1]
-            console.log(roomName)
-            for (var i in roomName) {
-                console.log(i + " - " + roomName[i]);
-            }
-            //let room = server.rooms.find((room) => {
-            //    return room.name == roomName
-            //})
-
-            //room.history.push(message)
-            //console.log(room.history)
-
-
-            io.of(server.endpoint).emit('message', message)
-        })
-        socket.on('changeRoom', (roomName) => {
             let room = server.room.find((room) => {
                 return room.name == roomName
             })
-            socket.emit('chatHistory', room.history)
-            socket.join(room)
+            room.history.push(message)
+
+            io.of(server.endpoint).to(roomName).emit('messageToClient', message)
         })
+
+        socket.on('joinRoom', (roomToJoin) => {
+
+            let roomToLeave = Object.keys(socket.rooms)[1]
+
+            socket.leave(roomToLeave)
+            socket.join(roomToJoin)
+
+            let room = server.room.find((room) => {
+                return room.name == roomToJoin
+            })
+
+            socket.emit('chatHistory', room.history)
+        })
+
     })
 });
 
