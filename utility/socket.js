@@ -1,4 +1,4 @@
-let io = require('../bin/www');
+let Server = require('../controllers/Server');
 
 function createSocketServers() {
     let servers = [
@@ -6,7 +6,7 @@ function createSocketServers() {
                         name: 'TFT',
                         image: 'https://images.contentstack.io/v3/assets/blt731acb42bb3d1659/bltfe81204b8ec63e0e/5e6184a918d3347ceffbbd6d/TFT.S3_GALAXIES.ARTICLE-2.jpg',
                         endpoint: '/tft',
-                        room: [
+                        rooms: [
                             {
                                 name: 'General', namespace: 'TFT', history: []
                             },
@@ -19,7 +19,7 @@ function createSocketServers() {
                         name: 'LoL',
                         image: 'https://images.contentstack.io/v3/assets/blt731acb42bb3d1659/bltfe81204b8ec63e0e/5e6184a918d3347ceffbbd6d/TFT.S3_GALAXIES.ARTICLE-2.jpg',
                         endpoint: '/lol',
-                        room: [
+                        rooms: [
                             {
                                 name: 'General', namespace: 'LoL', history: []
                             },
@@ -32,7 +32,7 @@ function createSocketServers() {
                         name: 'WoW',
                         image: 'https://images.contentstack.io/v3/assets/blt731acb42bb3d1659/bltfe81204b8ec63e0e/5e6184a918d3347ceffbbd6d/TFT.S3_GALAXIES.ARTICLE-2.jpg',
                         endpoint: '/wow',
-                        room: [
+                        rooms: [
                             {
                                 name: 'General', namespace: 'WoW', history: []
                             },
@@ -42,36 +42,9 @@ function createSocketServers() {
                         ]
                     },
                 ]
-
     servers.forEach((server) => {
-        console.log(server.name)
-        io.of(server.endpoint).on('connection',(socket) => {
-
-            socket.on('messageToServer', (message) => {
-                let roomName = Object.keys(socket.rooms)[1]
-                let room = server.room.find((room) => {
-                    return room.name == roomName
-                })
-                room.history.push(message)
-
-                io.of(server.endpoint).to(roomName).emit('messageToClient', message)
-            })
-
-            socket.on('joinRoom', (roomToJoin) => {
-
-                let roomToLeave = Object.keys(socket.rooms)[1]
-
-                socket.leave(roomToLeave)
-                socket.join(roomToJoin)
-
-                let room = server.room.find((room) => {
-                    return room.name == roomToJoin
-                })
-
-                socket.emit('chatHistory', room.history)
-            })
-
-        })
+        let socketServer = new Server(server.name, server.image, server.endpoint, server.rooms)
+        socketServer.createSocketIoNamespace();
     });
 }
 
