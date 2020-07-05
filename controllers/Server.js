@@ -1,9 +1,25 @@
+let database = require('./database')
+
 module.exports = class Server {
     constructor(name, image, endpoint, rooms) {
         this.name = name;
         this.image = image;
         this.endpoint = endpoint;
         this.rooms = rooms;
+    }
+
+    save(){
+        return database.execute(
+            'INSERT INTO servers (name, image, endpoint, rooms) VALUES (?, ?, ?, ?)',
+            [this.name, this.image, this.endpoint, this.rooms],
+            function(err, results, fields) {
+
+            }
+        )
+    }
+
+    static fetchAll(){
+        return database.execute('SELECT * FROM servers')
     }
 
     createSocketIoNamespace(){
