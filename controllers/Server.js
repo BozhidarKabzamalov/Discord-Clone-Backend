@@ -1,10 +1,10 @@
 let database = require('./database')
 
 module.exports = class Server {
-    constructor(name, image, endpoint, rooms) {
+    constructor(name, image, rooms = [{ name: 'General', namspace: name, history: []}]) {
         this.name = name;
         this.image = image;
-        this.endpoint = endpoint;
+        this.endpoint = '/' + name.toLowerCase();
         this.rooms = rooms;
     }
 

@@ -4,7 +4,7 @@ function createSocketServers() {
     Server.fetchAll()
     .then((servers) => {
         servers[0].forEach((server) => {
-            let socketServer = new Server(server.name, server.image, server.endpoint, server.rooms)
+            let socketServer = new Server(server.name, server.image, server.rooms)
             socketServer.createSocketIoNamespace();
         });
     })

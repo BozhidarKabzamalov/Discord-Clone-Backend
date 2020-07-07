@@ -10,16 +10,18 @@ router.get('/servers', function(req, res, next) {
     Server.fetchAll()
     .then((result) => {
         res.send(result[0])
-    }
-    )
-    .catch(err => console.log(err))
+    })
+    .catch((error) => {
+        console.log(error)
+    })
 });
 
 router.post('/createServer', function(req, res, next) {
     let server = req.body;
-    let socketServer = new Server(server.name, server.image, server.endpoint, server.rooms);
+    let socketServer = new Server(server.name, server.image);
     socketServer.save();
     socketServer.createSocketIoNamespace();
+    res.send(socketServer);
 });
 
 module.exports = router;
