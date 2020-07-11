@@ -1,4 +1,4 @@
-let database = require('./database')
+let database = require('./DatabaseController')
 
 module.exports = class Server {
     constructor(name, image, rooms = [{ name: 'General', namspace: name, history: []}]) {
@@ -11,10 +11,7 @@ module.exports = class Server {
     save(){
         return database.execute(
             'INSERT INTO servers (name, image, endpoint, rooms) VALUES (?, ?, ?, ?)',
-            [this.name, this.image, this.endpoint, this.rooms],
-            function(err, results, fields) {
-
-            }
+            [this.name, this.image, this.endpoint, this.rooms]
         )
     }
 

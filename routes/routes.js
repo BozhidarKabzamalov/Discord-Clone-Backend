@@ -1,8 +1,12 @@
 var express = require('express');
 var router = express.Router();
-let serversController = require('../controllers/ServersController')
+let serverController = require('../controllers/ServerController')
+let userController = require('../controllers/UserController')
+let emojiController = require('../controllers/EmojiController')
 
-router.get('/servers', serversController.getServers);
-router.post('/createServer', serversController.createServer);
+router.get('/servers', serverController.getServers);
+router.get('/emoji', emojiController.getEmoji);
+router.post('/createServer', serverController.createServer);
+router.post('/register', userController.createUser);
 
 module.exports = router;
