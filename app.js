@@ -37,4 +37,11 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
+/*let sequelize = require('./controllers/DatabaseController');
+sequelize.sync().then(result => {
+
+}).catch(error => {
+    console.log(error)
+})*/
+
 module.exports = app;

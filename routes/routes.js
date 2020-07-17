@@ -7,6 +7,7 @@ let emojiController = require('../controllers/EmojiController')
 router.get('/servers', serverController.getServers);
 router.get('/emoji', emojiController.getEmoji);
 router.post('/createServer', serverController.createServer);
-router.post('/register', userController.createUser);
+router.post('/register', userController.registerUser);
+router.get('/login', userController.loginUser);
 
 module.exports = router;

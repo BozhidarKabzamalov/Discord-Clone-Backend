@@ -1,10 +1,16 @@
-let Server = require('../controllers/Server');
+let Server = require('../models/Server');
 
 function createSocketServers() {
-    Server.fetchAll()
+    Server.findAll()
     .then((servers) => {
-        servers[0].forEach((server) => {
-            let socketServer = new Server(server.name, server.image, server.rooms)
+        servers.forEach((server) => {
+            let socketServer = Server.build({
+                name: server.name,
+                thumbnail: server.thumbnail,
+                endpoint: server.endpoint,
+                rooms: server.rooms
+            })
+
             socketServer.createSocketIoNamespace();
         });
     })

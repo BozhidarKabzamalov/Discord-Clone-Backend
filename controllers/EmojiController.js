@@ -1,12 +1,11 @@
-let database = require('./DatabaseController')
+let Emoji = require('../models/Emoji')
 
 module.exports.getEmoji = (req, res, next) => {
-    return database.execute(
-        'SELECT * FROM emoji'
-    ).then(result => {
-        res.send(result[0])
+    Emoji.findAll()
+    .then(result => {
+        res.send(result)
     })
-    .catch((error) => {
+    .catch(error => {
         console.log(error)
     })
 }

@@ -1,10 +1,8 @@
-let mysql = require('mysql2')
+let Sequelize = require('sequelize');
 
-let pool = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    database: 'discord',
-    password: 'root'
-})
+let sequelize = new Sequelize('discord', 'root', 'root', {
+    dialect: 'mysql',
+    host: 'localhost'
+});
 
-module.exports = pool.promise()
+module.exports = sequelize;

@@ -1,9 +1,9 @@
-let Server = require('./Server');
+let Server = require('../models/Server');
 
 module.exports.getServers = (req, res, next) => {
-    Server.fetchAll()
+    Server.findAll()
     .then((result) => {
-        res.send(result[0])
+        res.send(result)
     })
     .catch((error) => {
         console.log(error)
