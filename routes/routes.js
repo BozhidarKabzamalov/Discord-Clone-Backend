@@ -8,6 +8,6 @@ router.get('/servers', serverController.getServers);
 router.get('/emoji', emojiController.getEmoji);
 router.post('/createServer', serverController.createServer);
 router.post('/register', userController.registerUser);
-router.get('/login', userController.loginUser);
+router.post('/login', userController.loginUser);
 
 module.exports = router;
