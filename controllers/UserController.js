@@ -19,10 +19,13 @@ module.exports.registerUser = async (req, res, next) => {
             password: password,
             email: email
         })
-        user.save()
+        await user.save()
+
         let token = jwt.sign({ id: user.id, email: user.email }, 'secretkey')
         res.status(200).json({
             message: 'Authentication succeeded',
+            username: user.username,
+            userId: user.id,
             token: token
         })
     } else {
@@ -49,6 +52,8 @@ module.exports.loginUser = async (req, res, next) => {
                 let token = jwt.sign({ id: userExists.id, email: userExists.email }, 'secretkey')
                 res.status(200).json({
                     message: 'Authentication succeeded',
+                    username: userExists.username,
+                    userId: userExists.id,
                     token: token
                 })
             } else {

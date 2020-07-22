@@ -37,11 +37,20 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
+let Server = require('./models/Server');
+let User = require('./models/User');
+let ServerUser = require('./models/ServerUser');
+
+User.hasMany(Server);
+Server.belongsTo(User);
+User.belongsToMany(Server, { through: ServerUser });
+Server.belongsToMany(User, { through: ServerUser });
+
 /*let sequelize = require('./controllers/DatabaseController');
 sequelize.sync().then(result => {
-
+    console.log('Forced');
 }).catch(error => {
-    console.log(error)
+    console.log(error);
 })*/
 
 module.exports = app;

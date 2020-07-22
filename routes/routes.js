@@ -4,7 +4,7 @@ let serverController = require('../controllers/ServerController')
 let userController = require('../controllers/UserController')
 let emojiController = require('../controllers/EmojiController')
 
-router.get('/servers', serverController.getServers);
+router.get('/servers/:userId', serverController.getUserServers);
 router.get('/emoji', emojiController.getEmoji);
 router.post('/createServer', serverController.createServer);
 router.post('/register', userController.registerUser);

@@ -8,6 +8,10 @@ let Server = sequelize.define('server', {
         autoIncrement: true,
         allowNull: false,
     },
+    userId: {
+        type: Sequelize.INTEGER,
+        allowNull: false
+    },
     name: {
         type: Sequelize.STRING,
         allowNull: false
