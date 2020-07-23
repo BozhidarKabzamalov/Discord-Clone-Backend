@@ -14,13 +14,20 @@ module.exports.getUserServers = async (req, res, next) => {
 }
 
 module.exports.createServer = async (req, res, next) => {
-    let server = req.body;
-    let socketServer = Server.build({
-        name: server.name,
-        thumbnail: server.image,
-        userId: 1
+    let name = req.body.name;
+    let thumbnail = req.body.image;
+    let userId = req.body.userId
+
+    let user = await User.findByPk(userId)
+
+    let socketServer = await Server.create({
+        name: name,
+        thumbnail: thumbnail,
+        userId: userId
     });
-    await socketServer.save();
+
+    user.addServer(socketServer)
+
     socketServer.createSocketIoNamespace();
     res.send(socketServer);
 }

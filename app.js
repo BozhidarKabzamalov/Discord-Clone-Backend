@@ -41,8 +41,6 @@ let Server = require('./models/Server');
 let User = require('./models/User');
 let ServerUser = require('./models/ServerUser');
 
-User.hasMany(Server);
-Server.belongsTo(User);
 User.belongsToMany(Server, { through: ServerUser });
 Server.belongsToMany(User, { through: ServerUser });
 
