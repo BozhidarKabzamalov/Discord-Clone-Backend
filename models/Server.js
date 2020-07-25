@@ -1,5 +1,7 @@
 let Sequelize = require('sequelize');
 let sequelize = require('../controllers/DatabaseController');
+let Room = require('./Room')
+let Message = require('./Message')
 
 let Server = sequelize.define('server', {
     id: {
@@ -7,10 +9,6 @@ let Server = sequelize.define('server', {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         allowNull: false,
-    },
-    userId: {
-        type: Sequelize.INTEGER,
-        allowNull: false
     },
     name: {
         type: Sequelize.STRING,
@@ -24,39 +22,37 @@ let Server = sequelize.define('server', {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         allowNull: false,
-    },
-    rooms: {
-        type: Sequelize.JSON,
-        allowNull: false,
-        defaultValue: [{ name: 'General', history: []}]
     }
 })
 
-Server.prototype.createSocketIoNamespace = function () {
+Server.prototype.createSocketIoNamespace = function (rooms) {
     let io = require('../bin/www');
     io.of(this.endpoint).on('connection', socket => {
 
         socket.on('messageToServer', (message) => {
             let roomName = Object.keys(socket.rooms)[1]
-            let room = this.rooms.find((room) => {
+            let room = rooms.find((room) => {
                 return room.name == roomName
             })
-
-            room.history.push(message)
 
             io.of(this.endpoint).to(roomName).emit('messageToClient', message)
         })
 
-        socket.on('joinRoom', (roomToJoin) => {
+        socket.on('joinRoom', async (roomToJoin) => {
             let roomToLeave = Object.keys(socket.rooms)[1]
-            let room = this.rooms.find((room) => {
-                return room.name == roomToJoin
+
+            let room = await Room.findAll({
+                where: {
+                    name: roomToJoin.roomName,
+                    serverId: roomToJoin.serverId
+                },
+                include: Message
             })
 
             socket.leave(roomToLeave)
-            socket.join(roomToJoin)
+            socket.join(roomToJoin.roomName)
 
-            socket.emit('chatHistory', room.history)
+            socket.emit('chatHistory', room[0].messages)
         })
 
     })

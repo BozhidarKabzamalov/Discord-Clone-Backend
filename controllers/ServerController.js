@@ -1,11 +1,21 @@
-let Server = require('../models/Server');
 let User = require('../models/User')
+let Server = require('../models/Server')
+let Room = require('../models/Room')
+let Message = require('../models/Message')
 
 module.exports.getUserServers = async (req, res, next) => {
     let userId = req.params.userId
 
     let user = await User.findByPk(userId, {
-        include: Server
+        include: [
+            {
+                model: Server,
+                include: [{
+                    model: Room,
+                    include: [Message]
+                }]
+            }
+        ]
     })
 
     res.status(200).json({

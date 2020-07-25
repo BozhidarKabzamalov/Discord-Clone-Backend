@@ -37,10 +37,18 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-let Server = require('./models/Server');
 let User = require('./models/User');
 let ServerUser = require('./models/ServerUser');
+let Server = require('./models/Server');
+let Room = require('./models/Room');
+let Message = require('./models/Message');
 
+Server.hasMany(Room)
+Room.belongsTo(Server)
+Room.hasMany(Message)
+Message.belongsTo(Room)
+User.hasMany(Message)
+Message.belongsTo(User)
 User.belongsToMany(Server, { through: ServerUser });
 Server.belongsToMany(User, { through: ServerUser });
 
