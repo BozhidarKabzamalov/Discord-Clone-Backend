@@ -24,20 +24,32 @@ module.exports.getUserServers = async (req, res, next) => {
 }
 
 module.exports.createServer = async (req, res, next) => {
-    let name = req.body.name;
-    let thumbnail = req.body.image;
+    let name = req.body.name
+    let thumbnail = req.body.image
     let userId = req.body.userId
 
     let user = await User.findByPk(userId)
 
-    let socketServer = await Server.create({
+    let server = await Server.create({
         name: name,
         thumbnail: thumbnail,
-        userId: userId
+        userId: userId,
+        endpoint: '/' + name
     });
 
-    user.addServer(socketServer)
+    let room = await Room.create({
+        name: 'General'
+    })
 
-    socketServer.createSocketIoNamespace();
-    res.send(socketServer);
+    user.addServer(server)
+    server.addRoom(room)
+
+    serverJson = server.toJSON()
+    roomJson = room.toJSON()
+    roomJson.messages = []
+    serverJson.rooms = []
+    serverJson.rooms.push(roomJson)
+
+    server.createSocketIoNamespace(serverJson.rooms);
+    res.send(serverJson);
 }

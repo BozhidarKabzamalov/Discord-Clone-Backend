@@ -8,7 +8,11 @@ let Server = sequelize.define('server', {
         primaryKey: true,
         type: Sequelize.INTEGER,
         autoIncrement: true,
-        allowNull: false,
+        allowNull: false
+    },
+    userId: {
+        type: Sequelize.INTEGER,
+        allowNull: false
     },
     name: {
         type: Sequelize.STRING,
@@ -16,19 +20,19 @@ let Server = sequelize.define('server', {
     },
     thumbnail: {
         type: Sequelize.STRING(1400),
-        allowNull: false,
+        allowNull: false
     },
     endpoint: {
         type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
-        allowNull: false,
+        allowNull: false
     }
 })
 
 Server.prototype.createSocketIoNamespace = function (rooms) {
     let io = require('../bin/www');
-    io.of(this.endpoint).on('connection', socket => {
 
+    io.of(this.endpoint).on('connection', socket => {
+        
         socket.on('messageToServer', (message) => {
             let roomName = Object.keys(socket.rooms)[1]
             let room = rooms.find((room) => {

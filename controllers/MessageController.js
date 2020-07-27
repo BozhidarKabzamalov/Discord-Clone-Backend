@@ -5,7 +5,7 @@ let Room = require('../models/Room')
 module.exports.sendMessage = async (req, res, next) => {
     let room = await Room.findByPk(req.body.roomId)
 
-    let message = room.createMessage({
+    let message = await room.createMessage({
         message: req.body.message,
         username: req.body.username,
         userId: req.body.userId
