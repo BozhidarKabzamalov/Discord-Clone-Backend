@@ -2,7 +2,7 @@ let jwt = require('jsonwebtoken')
 
 module.exports = (req, res, next) => {
     let authorizationHeader = req.headers.authorization
-    console.log(req.headers)
+
     if (!authorizationHeader) {
         let error = new Error('Not authenticated.')
         error.statusCode = 401
@@ -25,6 +25,6 @@ module.exports = (req, res, next) => {
         throw error
     }
 
-    req.userId = decodedToken.userId
+    req.tokenUserId = decodedToken.id
     next()
 }

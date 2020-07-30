@@ -9,9 +9,18 @@ let authenticated = require('../middleware/authenticated');
 
 router.get('/servers/:userId', authenticated, serverController.getUserServers);
 router.get('/emoji', authenticated, emojiController.getEmoji);
-router.post('/message', authenticated, messageController.sendMessage);
+
+router.post('/createMessage', authenticated, messageController.createMessage);
+router.post('/deleteMessage', authenticated, messageController.deleteMessage);
+
 router.post('/createServer', authenticated, serverController.createServer);
-router.get('/createRoom', authenticated, roomController.createRoom);
+router.post('/deleteServer', authenticated, serverController.deleteServer);
+router.post('/updateServer', authenticated, serverController.updateServer);
+
+router.post('/createRoom', authenticated, roomController.createRoom);
+router.post('/deleteRoom', authenticated, roomController.deleteRoom);
+router.post('/updateRoom', authenticated, roomController.updateRoom);
+
 router.post('/register', authenticated, userController.registerUser);
 router.post('/login', userController.loginUser);
 

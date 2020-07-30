@@ -32,7 +32,7 @@ Server.prototype.createSocketIoNamespace = function (rooms) {
     let io = require('../bin/www');
 
     io.of(this.endpoint).on('connection', socket => {
-        
+
         socket.on('messageToServer', (message) => {
             let roomName = Object.keys(socket.rooms)[1]
             let room = rooms.find((room) => {

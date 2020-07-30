@@ -10,7 +10,7 @@ module.exports.getUserServers = async (req, res, next) => {
         include: [
             {
                 model: Server,
-                include: [{
+                include: [User, {
                     model: Room,
                     include: [Message]
                 }]
@@ -52,4 +52,20 @@ module.exports.createServer = async (req, res, next) => {
 
     server.createSocketIoNamespace(serverJson.rooms);
     res.send(serverJson);
+}
+
+module.exports.deleteServer = async (req, res, next) => {
+    Server.destroy({
+        where: {
+            id: req.body.id
+        }
+    })
+
+    res.status(200).json({
+        message: 'Room deleted'
+    })
+}
+
+module.exports.updateServer = async (req, res, next) => {
+
 }
