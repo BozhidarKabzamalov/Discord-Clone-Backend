@@ -4,30 +4,59 @@ let Room = require('../models/Room')
 
 module.exports.createRoom = async (req, res, next) => {
     let serverId = req.body.serverId
+    let userId = req.body.tokenUserId
     let name = req.body.name
-
     let server = await Server.findByPk(serverId)
-    let room = await Room.create({
-        name: name
-    })
 
-    server.addRoom(room)
+    if (server.userId == userId) {
+        let room = await Room.create({
+            name: name
+        })
 
-    res.status(200).json({
-        message: 'Room added'
-    })
+        server.addRoom(room)
+
+        room = room.toJSON()
+        room.messages = []
+        room.serverId = serverId
+
+        res.status(200).json({
+            room: room
+        })
+    } else {
+        res.status(401).json({
+            message: 'Forbidden'
+        })
+    }
+
 }
 
 module.exports.deleteRoom = async (req, res, next) => {
-    Room.destroy({
+    let roomId = req.body.id
+    let serverId = req.body.serverId
+    let userId = req.body.tokenUserId
+
+    let server = await Server.findOne({
         where: {
-            id: req.body.id
+            id: serverId
         }
     })
 
-    res.status(200).json({
-        message: 'Room deleted'
-    })
+    if (server.userId == userId) {
+        Room.destroy({
+            where: {
+                id: roomId
+            }
+        })
+
+        res.status(200).json({
+            message: 'Room deleted'
+        })
+    } else {
+        res.status(401).json({
+            message: 'Forbidden'
+        })
+    }
+
 }
 
 module.exports.updateRoom = async (req, res, next) => {

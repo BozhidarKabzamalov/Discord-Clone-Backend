@@ -24,9 +24,11 @@ module.exports.getUserServers = async (req, res, next) => {
 }
 
 module.exports.createServer = async (req, res, next) => {
+    console.log(req.body)
+    console.log(req.file)
     let name = req.body.name
-    let thumbnail = req.body.image
-    let userId = req.body.userId
+    let file = req.file
+    let userId = req.body.tokenUserId
 
     let user = await User.findByPk(userId)
 
@@ -44,28 +46,56 @@ module.exports.createServer = async (req, res, next) => {
     user.addServer(server)
     server.addRoom(room)
 
-    serverJson = server.toJSON()
-    roomJson = room.toJSON()
-    roomJson.messages = []
-    serverJson.rooms = []
-    serverJson.rooms.push(roomJson)
+    server = server.toJSON()
+    room = room.toJSON()
+    room.messages = []
+    server.rooms = []
+    server.rooms.push(room)
 
-    server.createSocketIoNamespace(serverJson.rooms);
-    res.send(serverJson);
+    server.createSocketIoNamespace(server.rooms);
+    res.send(server);
 }
 
 module.exports.deleteServer = async (req, res, next) => {
-    Server.destroy({
-        where: {
-            id: req.body.id
-        }
-    })
+    let userId = req.body.tokenUserId
+    let serverId = req.body.id
+    let server = await Server.findByPk(serverId)
 
-    res.status(200).json({
-        message: 'Room deleted'
-    })
+    if (server.userId == userId) {
+        Server.destroy({
+            where: {
+                id: serverId
+            }
+        })
+
+        res.status(200).json({
+            message: 'Server deleted'
+        })
+    } else {
+        res.status(401).json({
+            message: 'Forbidden'
+        })
+    }
+
 }
 
 module.exports.updateServer = async (req, res, next) => {
+    let userId = req.body.tokenUserId
+    let serverId = req.body.server.id
+    let newName = req.body.newName
+    let server = await Server.findByPk(serverId)
+
+    if (server.userId == userId) {
+        server.name = newName
+        server.save()
+
+        res.status(200).json({
+            message: 'Server deleted'
+        })
+    } else {
+        res.status(401).json({
+            message: 'Forbidden'
+        })
+    }
 
 }

@@ -3,10 +3,28 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var multer = require('multer');
 
 var routes = require('./routes/routes');
-var cors = require('cors')
+var cors = require('cors');
 var app = express();
+
+var storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'public/images/servers')
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.originalname)
+    }
+})
+
+var fileFilter = (req, file, cb) => {
+    if (file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg') {
+        cb(null, true)
+    } else {
+        cb(null, false)
+    }
+}
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -17,7 +35,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(cors())
+app.use(cors());
+app.use(multer({ storage: storage, fileFilter: fileFilter }).single('image'));
 
 app.use('/', routes);
 

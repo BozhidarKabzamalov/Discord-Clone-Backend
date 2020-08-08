@@ -19,6 +19,10 @@ let User = sequelize.define('user', {
     email: {
         type: Sequelize.STRING,
         allowNull: false,
+    },
+    image: {
+        type: Sequelize.STRING(1400),
+        allowNull: false,
     }
 })
 
