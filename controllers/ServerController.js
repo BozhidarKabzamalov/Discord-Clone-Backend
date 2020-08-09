@@ -2,6 +2,9 @@ let User = require('../models/User')
 let Server = require('../models/Server')
 let Room = require('../models/Room')
 let Message = require('../models/Message')
+let Jimp = require('jimp');
+let mime = require('mime-types')
+const { v4: uuidv4 } = require('uuid');
 
 module.exports.getUserServers = async (req, res, next) => {
     let userId = req.params.userId
@@ -24,36 +27,75 @@ module.exports.getUserServers = async (req, res, next) => {
 }
 
 module.exports.createServer = async (req, res, next) => {
-    console.log(req.body)
-    console.log(req.file)
     let name = req.body.name
     let file = req.file
     let userId = req.body.tokenUserId
+    let extension = mime.extension(req.file.mimetype)
+    let imageName = uuidv4() + '.' + extension
+    let imageUrl = req.protocol + '://' + req.get('host') + '/images/servers/' + name + '/';
 
-    let user = await User.findByPk(userId)
-
-    let server = await Server.create({
-        name: name,
-        thumbnail: thumbnail,
-        userId: userId,
-        endpoint: '/' + name
-    });
-
-    let room = await Room.create({
-        name: 'General'
+    let serverExists = await Server.findOne({
+        where: {
+            name: name
+        }
     })
 
-    user.addServer(server)
-    server.addRoom(room)
+    if (serverExists === null) {
 
-    server = server.toJSON()
-    room = room.toJSON()
-    room.messages = []
-    server.rooms = []
-    server.rooms.push(room)
+        Jimp.read(req.file.buffer)
+        .then(image => {
+            return image
+            .write('public/images/servers/' + name + '/' + 'original-' + imageName);
+        })
+        .catch(err => {
+            console.error(err);
+        });
 
-    server.createSocketIoNamespace(server.rooms);
-    res.send(server);
+        Jimp.read(req.file.buffer)
+        .then(image => {
+            return image
+            .resize(Jimp.AUTO, 500)
+            .write('public/images/servers/' + name + '/' + '500-' + imageName);
+        })
+        .catch(err => {
+            console.error(err);
+        });
+
+        let user = await User.findByPk(userId)
+
+        let server = await Server.create({
+            name: name,
+            path: imageUrl,
+            thumbnail: imageName,
+            userId: userId,
+            endpoint: '/' + uuidv4()
+        });
+
+        let room = await Room.create({
+            name: 'General'
+        })
+
+        user.addServer(server)
+        server.addRoom(room)
+
+        jsonRoom = room.toJSON()
+        jsonRoom.messages = []
+
+        jsonServer = server.toJSON()
+        jsonServer.rooms = []
+        jsonServer.rooms.push(jsonRoom)
+
+        server.createSocketIoNamespace(jsonServer.rooms);
+
+        res.send(jsonServer)
+
+    } else {
+        res.status(200).json({
+            message: 'Already exists'
+        })
+    }
+
+
 }
 
 module.exports.deleteServer = async (req, res, next) => {

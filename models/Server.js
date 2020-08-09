@@ -18,12 +18,16 @@ let Server = sequelize.define('server', {
         type: Sequelize.STRING,
         allowNull: false
     },
+    path: {
+        type: Sequelize.STRING(1400),
+        allowNull: false
+    },
     thumbnail: {
         type: Sequelize.STRING(1400),
         allowNull: false
     },
     endpoint: {
-        type: Sequelize.UUID,
+        type: Sequelize.STRING(1400),
         allowNull: false
     }
 })

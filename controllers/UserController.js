@@ -17,7 +17,8 @@ module.exports.registerUser = async (req, res, next) => {
         let user = User.build({
             username: username,
             password: password,
-            email: email
+            email: email,
+            image: 'https://media.discordapp.net/attachments/733747075455647898/738360317209214976/1.png'
         })
         await user.save()
 
