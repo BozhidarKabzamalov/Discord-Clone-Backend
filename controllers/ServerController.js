@@ -4,7 +4,8 @@ let Room = require('../models/Room')
 let Message = require('../models/Message')
 let Jimp = require('jimp');
 let mime = require('mime-types')
-const { v4: uuidv4 } = require('uuid');
+let { v4: uuidv4 } = require('uuid');
+let fs = require('fs')
 
 module.exports.getUserServers = async (req, res, next) => {
     let userId = req.params.userId
@@ -75,26 +76,33 @@ module.exports.createServer = async (req, res, next) => {
             name: 'General'
         })
 
-        user.addServer(server)
-        server.addRoom(room)
+        await user.addServer(server)
+        await server.addRoom(room)
 
-        jsonRoom = room.toJSON()
-        jsonRoom.messages = []
+        let finalServer = await Server.findOne({
+            where: {
+                id: server.id
+            },
+            include: [
+                {
+                    model: User,
+                },
+                {
+                    model: Room,
+                    include: [Message]
+                }
+            ]
+        })
 
-        jsonServer = server.toJSON()
-        jsonServer.rooms = []
-        jsonServer.rooms.push(jsonRoom)
+        finalServer.createSocketIoNamespace(finalServer.rooms);
 
-        server.createSocketIoNamespace(jsonServer.rooms);
-
-        res.send(jsonServer)
+        res.send(finalServer)
 
     } else {
         res.status(200).json({
             message: 'Already exists'
         })
     }
-
 
 }
 
@@ -104,6 +112,14 @@ module.exports.deleteServer = async (req, res, next) => {
     let server = await Server.findByPk(serverId)
 
     if (server.userId == userId) {
+
+        fs.unlink('public/images/servers/' + server.name + '/original-' + server.thumbnail, (err) => {
+            if (err) throw err;
+        });
+        fs.unlink('public/images/servers/' + server.name + '/500-' + server.thumbnail, (err) => {
+            if (err) throw err;
+        });
+
         Server.destroy({
             where: {
                 id: serverId

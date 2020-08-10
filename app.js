@@ -9,15 +9,6 @@ var routes = require('./routes/routes');
 var cors = require('cors');
 var app = express();
 
-var storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'public/images/servers')
-    },
-    filename: (req, file, cb) => {
-        cb(null, file.originalname)
-    }
-})
-
 var fileFilter = (req, file, cb) => {
     if (file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg') {
         cb(null, true)
