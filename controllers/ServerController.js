@@ -2,6 +2,7 @@ let User = require('../models/User')
 let Server = require('../models/Server')
 let Room = require('../models/Room')
 let Message = require('../models/Message')
+let Friend = require('../models/Friend')
 let Jimp = require('jimp');
 let mime = require('mime-types')
 let { v4: uuidv4 } = require('uuid');
@@ -13,16 +14,36 @@ module.exports.getUserServers = async (req, res, next) => {
     let user = await User.findByPk(userId, {
         include: [
             {
+                model: Friend,
+                include: [
+                    {
+                        model: User,
+                        attributes: { exclude: ['password'] }
+                    }
+                ]
+            },
+            {
                 model: Server,
-                include: [User, {
-                    model: Room,
-                    include: [Message]
-                }]
+                include: [
+                    {
+                        model: User,
+                        attributes: { exclude: ['password'] }
+                    },
+                    {
+                        model: Room,
+                        include: [Message]
+                    }
+                ]
             }
-        ]
+        ],
+        order: [
+            [Server, 'createdAt', 'ASC'],
+            [Server, Room, 'createdAt', 'ASC']
+        ],
     })
 
     res.status(200).json({
+        friends: user.friends,
         servers: user.servers
     })
 }

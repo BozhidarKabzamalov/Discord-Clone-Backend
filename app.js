@@ -54,6 +54,7 @@ let ServerUser = require('./models/ServerUser');
 let Server = require('./models/Server');
 let Room = require('./models/Room');
 let Message = require('./models/Message');
+let Friend = require('./models/Friend');
 
 Server.hasMany(Room)
 Room.belongsTo(Server)
@@ -64,12 +65,16 @@ Message.belongsTo(Room)
 User.hasMany(Message)
 Message.belongsTo(User)
 
-User.belongsToMany(Server, { through: ServerUser });
-Server.belongsToMany(User, { through: ServerUser });
+User.belongsToMany(Server, { through: ServerUser })
+Server.belongsToMany(User, { through: ServerUser })
+
+User.hasMany(Friend, {foreignKey: 'userId1'})
+Friend.belongsTo(User, {foreignKey: 'userId2'})
+
 
 /*let sequelize = require('./controllers/DatabaseController');
 sequelize.sync().then(result => {
-    console.log('Forced');
+    
 }).catch(error => {
     console.log(error);
 })*/
