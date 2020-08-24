@@ -54,7 +54,6 @@ module.exports.createServer = async (req, res, next) => {
     let userId = req.body.tokenUserId
     let extension = mime.extension(req.file.mimetype)
     let imageName = uuidv4() + '.' + extension
-    let imageUrl = req.protocol + '://' + req.get('host') + '/images/servers/' + name + '/';
 
     let serverExists = await Server.findOne({
         where: {
@@ -63,11 +62,24 @@ module.exports.createServer = async (req, res, next) => {
     })
 
     if (serverExists === null) {
+        let user = await User.findByPk(userId)
+        let server = await Server.create({
+            name: name,
+            thumbnail: imageName,
+            userId: userId,
+            endpoint: '/' + uuidv4()
+        });
+        let room = await Room.create({
+            name: 'General'
+        })
+
+        await user.addServer(server)
+        await server.addRoom(room)
 
         Jimp.read(req.file.buffer)
         .then(image => {
             return image
-            .write('public/images/servers/' + name + '/' + 'original-' + imageName);
+            .write('public/images/servers/' + imageName + '/' + 'original-' + imageName);
         })
         .catch(err => {
             console.error(err);
@@ -77,28 +89,11 @@ module.exports.createServer = async (req, res, next) => {
         .then(image => {
             return image
             .resize(Jimp.AUTO, 500)
-            .write('public/images/servers/' + name + '/' + '500-' + imageName);
+            .write('public/images/servers/' + imageName + '/' + '500-' + imageName);
         })
         .catch(err => {
             console.error(err);
         });
-
-        let user = await User.findByPk(userId)
-
-        let server = await Server.create({
-            name: name,
-            path: imageUrl,
-            thumbnail: imageName,
-            userId: userId,
-            endpoint: '/' + uuidv4()
-        });
-
-        let room = await Room.create({
-            name: 'General'
-        })
-
-        await user.addServer(server)
-        await server.addRoom(room)
 
         let finalServer = await Server.findOne({
             where: {
@@ -160,16 +155,40 @@ module.exports.deleteServer = async (req, res, next) => {
 
 module.exports.updateServer = async (req, res, next) => {
     let userId = req.body.tokenUserId
-    let serverId = req.body.server.id
+    let serverId = req.body.serverId
     let newName = req.body.newName
+    let newImage = req.file
     let server = await Server.findByPk(serverId)
 
-    if (server.userId == userId) {
-        server.name = newName
+    if (server && server.userId == userId) {
+        if (newImage) {
+            Jimp.read(newImage.buffer)
+            .then(image => {
+                return image
+                .write('public/images/servers/' + server.thumbnail + '/' + 'original-' + server.thumbnail);
+            })
+            .catch(err => {
+                console.error(err);
+            });
+
+            Jimp.read(newImage.buffer)
+            .then(image => {
+                return image
+                .resize(Jimp.AUTO, 500)
+                .write('public/images/servers/' + server.thumbnail + '/' + '500-' + server.thumbnail);
+            })
+            .catch(err => {
+                console.error(err);
+            });
+        }
+        if (newName) {
+            server.name = newName
+        }
         server.save()
 
         res.status(200).json({
-            message: 'Server deleted'
+            message: 'Server updated',
+            server: server
         })
     } else {
         res.status(401).json({
