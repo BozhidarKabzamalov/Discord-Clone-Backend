@@ -38,7 +38,9 @@ module.exports.getUserServers = async (req, res, next) => {
         ],
         order: [
             [Server, 'createdAt', 'ASC'],
-            [Server, Room, 'createdAt', 'ASC']
+            [Server, Room, 'createdAt', 'ASC'],
+            [Server, User, 'createdAt', 'ASC'],
+            [Server, Room, Message, 'createdAt', 'ASC']
         ],
     })
 
@@ -49,23 +51,25 @@ module.exports.getUserServers = async (req, res, next) => {
 }
 
 module.exports.createServer = async (req, res, next) => {
-    let name = req.body.name
+    let serverName = req.body.name
     let file = req.file
     let userId = req.body.tokenUserId
-    let extension = mime.extension(req.file.mimetype)
+    let extension = mime.extension(file.mimetype)
+    let serverFolderName = serverName + '-' + uuidv4()
     let imageName = uuidv4() + '.' + extension
+    let imageUrl = req.protocol + '://' + req.get('host') + '/images/servers/' + serverFolderName + '/' + imageName
 
     let serverExists = await Server.findOne({
         where: {
-            name: name
+            name: serverName
         }
     })
 
     if (serverExists === null) {
         let user = await User.findByPk(userId)
         let server = await Server.create({
-            name: name,
-            thumbnail: imageName,
+            name: serverName,
+            thumbnail: imageUrl,
             userId: userId,
             endpoint: '/' + uuidv4()
         });
@@ -76,20 +80,11 @@ module.exports.createServer = async (req, res, next) => {
         await user.addServer(server)
         await server.addRoom(room)
 
-        Jimp.read(req.file.buffer)
-        .then(image => {
-            return image
-            .write('public/images/servers/' + imageName + '/' + 'original-' + imageName);
-        })
-        .catch(err => {
-            console.error(err);
-        });
-
-        Jimp.read(req.file.buffer)
+        Jimp.read(file.buffer)
         .then(image => {
             return image
             .resize(Jimp.AUTO, 500)
-            .write('public/images/servers/' + imageName + '/' + '500-' + imageName);
+            .write('public/images/servers/' + serverFolderName + '/' + imageName);
         })
         .catch(err => {
             console.error(err);
@@ -128,11 +123,8 @@ module.exports.deleteServer = async (req, res, next) => {
     let server = await Server.findByPk(serverId)
 
     if (server.userId == userId) {
-
-        fs.unlink('public/images/servers/' + server.name + '/original-' + server.thumbnail, (err) => {
-            if (err) throw err;
-        });
-        fs.unlink('public/images/servers/' + server.name + '/500-' + server.thumbnail, (err) => {
+        let folderAndFile = server.thumbnail.replace(req.protocol + '://' + req.get('host') + '/images/servers/', '')
+        fs.unlink('public/images/servers/' + folderAndFile, (err) => {
             if (err) throw err;
         });
 
@@ -158,24 +150,31 @@ module.exports.updateServer = async (req, res, next) => {
     let serverId = req.body.serverId
     let newName = req.body.newName
     let newImage = req.file
-    let server = await Server.findByPk(serverId)
+    let server = await Server.findByPk(serverId, {
+        include: [
+            {
+                model: User,
+                attributes: { exclude: ['password'] }
+            },
+            {
+                model: Room,
+                include: [Message]
+            }
+        ],
+        order: [
+            [Room, 'createdAt', 'ASC']
+        ]
+    })
 
     if (server && server.userId == userId) {
         if (newImage) {
-            Jimp.read(newImage.buffer)
-            .then(image => {
-                return image
-                .write('public/images/servers/' + server.thumbnail + '/' + 'original-' + server.thumbnail);
-            })
-            .catch(err => {
-                console.error(err);
-            });
+            let folderAndFile = server.thumbnail.replace(req.protocol + '://' + req.get('host') + '/images/servers/', '')
 
             Jimp.read(newImage.buffer)
             .then(image => {
                 return image
                 .resize(Jimp.AUTO, 500)
-                .write('public/images/servers/' + server.thumbnail + '/' + '500-' + server.thumbnail);
+                .write('public/images/servers/' + folderAndFile);
             })
             .catch(err => {
                 console.error(err);
@@ -187,13 +186,33 @@ module.exports.updateServer = async (req, res, next) => {
         server.save()
 
         res.status(200).json({
-            message: 'Server updated',
             server: server
         })
     } else {
         res.status(401).json({
             message: 'Forbidden'
         })
+    }
+
+}
+
+module.exports.joinServer = async (req, res, next) => {
+    let serverName = req.body.serverName
+    let userId = req.body.tokenUserId
+
+    let user = await User.findByPk(userId)
+    let server = await Server.findOne({
+        where: {
+            name: serverName
+        }
+    })
+
+    let userHasAlreadyJoined = await user.hasServer(server)
+
+    if (userHasAlreadyJoined) {
+
+    } else {
+        await user.addServer(server)
     }
 
 }

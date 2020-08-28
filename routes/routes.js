@@ -13,6 +13,7 @@ router.get('/emoji', authenticated, emojiController.getEmoji);
 router.post('/createMessage', authenticated, messageController.createMessage);
 router.post('/deleteMessage', authenticated, messageController.deleteMessage);
 
+router.post('/joinServer', authenticated, serverController.joinServer);
 router.post('/createServer', authenticated, serverController.createServer);
 router.post('/deleteServer', authenticated, serverController.deleteServer);
 router.post('/updateServer', authenticated, serverController.updateServer);

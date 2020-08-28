@@ -7,6 +7,11 @@ let Friend = sequelize.define('friend', {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         allowNull: false,
+    },
+    accepted: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
     }
 })
 

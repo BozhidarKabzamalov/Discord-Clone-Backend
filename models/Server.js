@@ -30,6 +30,7 @@ let Server = sequelize.define('server', {
 
 Server.prototype.createSocketIoNamespace = function (rooms) {
     let io = require('../bin/www');
+    let onlineUsers = []
 
     io.of(this.endpoint).on('connection', socket => {
 
@@ -41,6 +42,17 @@ Server.prototype.createSocketIoNamespace = function (rooms) {
 
             io.of(this.endpoint).to(roomName).emit('messageToClient', message)
         })
+
+        socket.on('userCameOnline', (username) => {
+            socket.username = username
+            onlineUsers.push(socket.username)
+            socket.emit('onlineUsers', onlineUsers)
+        })
+
+        socket.on('disconnect', function () {
+            var index = onlineUsers.indexOf(socket.username)
+            onlineUsers.splice(index, 1)
+        });
 
         socket.on('joinRoom', async (roomToJoin) => {
             let roomToLeave = Object.keys(socket.rooms)[1]

@@ -71,10 +71,9 @@ Server.belongsToMany(User, { through: ServerUser })
 User.hasMany(Friend, {foreignKey: 'userId1'})
 Friend.belongsTo(User, {foreignKey: 'userId2'})
 
-
 /*let sequelize = require('./controllers/DatabaseController');
 sequelize.sync().then(result => {
-    
+
 }).catch(error => {
     console.log(error);
 })*/
