@@ -2,6 +2,7 @@ let Sequelize = require('sequelize');
 let sequelize = require('../controllers/DatabaseController');
 let Room = require('./Room')
 let Message = require('./Message')
+let User = require('./User')
 
 let Server = sequelize.define('server', {
     id: {
@@ -46,12 +47,13 @@ Server.prototype.createSocketIoNamespace = function (rooms) {
         socket.on('userCameOnline', (username) => {
             socket.username = username
             onlineUsers.push(socket.username)
-            socket.emit('onlineUsers', onlineUsers)
+            io.of(this.endpoint).emit('onlineUsers', onlineUsers)
         })
 
-        socket.on('disconnect', function () {
+        socket.on('disconnect', () => {
             var index = onlineUsers.indexOf(socket.username)
             onlineUsers.splice(index, 1)
+            io.of(this.endpoint).emit('onlineUsers', onlineUsers)
         });
 
         socket.on('joinRoom', async (roomToJoin) => {
@@ -62,7 +64,13 @@ Server.prototype.createSocketIoNamespace = function (rooms) {
                     name: roomToJoin.roomName,
                     serverId: roomToJoin.serverId
                 },
-                include: Message
+                include: {
+                    model: Message,
+                    include: {
+                        model: User,
+                        attributes: { exclude: ['password'] }
+                    }
+                }
             })
 
             socket.leave(roomToLeave)

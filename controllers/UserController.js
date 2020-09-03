@@ -1,11 +1,21 @@
 let User = require('../models/User');
 let bcrypt = require('bcryptjs');
 let jwt = require('jsonwebtoken');
+let { validationResult } = require('express-validator')
 
 module.exports.registerUser = async (req, res, next) => {
     let username = req.body.username
     let email = req.body.email
     let password = await bcrypt.hash(req.body.password, 12)
+
+    let errors = validationResult(req)
+    if (!errors.isEmpty()) {
+        console.log(errors)
+        return res.status(401).json({
+            message: 'Authentication failed'
+        })
+    }
+
 
     let userExists = await User.findOne({
         where: {
