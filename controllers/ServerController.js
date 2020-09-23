@@ -11,6 +11,7 @@ module.exports.getUserServers = async (req, res, next) => {
     let userId = req.params.userId
 
     let user = await User.findByPk(userId, {
+        attributes: ['image'],
         include: [
             {
                 model: Server,
@@ -42,7 +43,7 @@ module.exports.getUserServers = async (req, res, next) => {
     })
 
     res.status(200).json({
-        servers: user.servers
+        user: user
     })
 }
 
