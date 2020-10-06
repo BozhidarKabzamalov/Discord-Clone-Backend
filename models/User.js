@@ -23,6 +23,7 @@ let User = sequelize.define('user', {
     image: {
         type: Sequelize.STRING(1400),
         allowNull: false,
+        defaultValue: "http://localhost:3000/images/users/default/default.png"
     }
 })
 

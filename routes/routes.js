@@ -23,6 +23,7 @@ router.post('/createRoom', authenticated, roomController.createRoom);
 router.post('/deleteRoom', authenticated, roomController.deleteRoom);
 router.post('/updateRoom', authenticated, roomController.updateRoom);
 
+router.post('/updateUser', authenticated, userController.updateUser);
 router.post('/register', [
     check('username').isLength({ min: 5, max: 10 }),
     check('password').isLength({ min: 5, max: 10 }),

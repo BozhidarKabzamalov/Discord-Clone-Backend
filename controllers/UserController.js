@@ -1,7 +1,10 @@
 let User = require('../models/User');
 let bcrypt = require('bcryptjs');
 let jwt = require('jsonwebtoken');
-let { validationResult } = require('express-validator')
+let Jimp = require('jimp');
+let mime = require('mime-types');
+let { v4: uuidv4 } = require('uuid');
+let { validationResult } = require('express-validator');
 
 module.exports.registerUser = async (req, res, next) => {
     let username = req.body.username
@@ -16,7 +19,6 @@ module.exports.registerUser = async (req, res, next) => {
         })
     }
 
-
     let userExists = await User.findOne({
         where: {
             email: email
@@ -27,17 +29,18 @@ module.exports.registerUser = async (req, res, next) => {
         let user = User.build({
             username: username,
             password: password,
-            email: email,
-            image: 'https://media.discordapp.net/attachments/733747075455647898/738360317209214976/1.png'
+            email: email
         })
         await user.save()
 
         let token = jwt.sign({ id: user.id, email: user.email }, 'secretkey')
         res.status(200).json({
-            message: 'Authentication succeeded',
-            username: user.username,
-            userId: user.id,
-            token: token
+            user: {
+                id: user.id,
+                username: user.username,
+                image: user.image,
+                token: token
+            }
         })
     } else {
         res.status(401).json({
@@ -62,10 +65,12 @@ module.exports.loginUser = async (req, res, next) => {
             if (result) {
                 let token = jwt.sign({ id: userExists.id, email: userExists.email }, 'secretkey')
                 res.status(200).json({
-                    message: 'Authentication succeeded',
-                    username: userExists.username,
-                    userId: userExists.id,
-                    token: token
+                    user: {
+                        id: userExists.id,
+                        username: userExists.username,
+                        image: userExists.image,
+                        token: token
+                    }
                 })
             } else {
                 res.status(401).json({
@@ -79,4 +84,43 @@ module.exports.loginUser = async (req, res, next) => {
         })
     }
 
+}
+
+module.exports.updateUser = async (req, res, next) => {
+    let userId = req.body.userId
+    let newUsername = req.body.username
+    let newImage = req.file
+
+    let user = await User.findByPk(userId, {
+        attributes: { exclude: ['password'] }
+    })
+
+    if (user && user.id == userId) {
+        if (newImage) {
+            let extension = mime.extension(newImage.mimetype)
+            let imageName = uuidv4() + '.' + extension
+            let imagePath = 'images/users/' + userId + '/' + imageName
+            let imageUrl = req.protocol + '://' + req.get('host') + '/' + imagePath
+            user.image = imageUrl
+
+            Jimp.read(newImage.buffer)
+            .then(image => {
+                return image
+                .resize(Jimp.AUTO, 500)
+                .write('public/' + imagePath);
+            })
+            .catch(err => {
+                console.error(err);
+            });
+        }
+        if (newUsername) {
+            user.username = newUsername
+        }
+    }
+
+    await user.save()
+
+    res.status(200).json({
+        user: user
+    })
 }
